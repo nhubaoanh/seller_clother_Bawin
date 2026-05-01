@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// User Model
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  avatar    String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders      Order[]
+  reviews     Review[]
+  cartItems   CartItem[]
+  wishlists   Wishlist[]
+
+  @@map("users")
+}
+
+// Product Category
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+// Product
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @db.LongText
+  image       String
+  images      String   @default("[]") // JSON array of image URLs
+  price       Float
+  originalPrice Float?
+  stock       Int      @default(0)
+  sold        Int      @default(0)
+  rating      Float    @default(0)
+  ratingCount Int      @default(0)
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category  Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  variants  Variant[]
+  reviews   Review[]
+  cartItems CartItem[]
+  wishlists Wishlist[]
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+// Product Variant (Size, Color)
+model Variant {
+  id        String   @id @default(cuid())
+  productId String
+  size      String
+  color     String
+  stock     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems CartItem[]
+  orderItems OrderItem[]
+
+  @@unique([productId, size, color])
+  @@map("variants")
+}
+
+// Shopping Cart
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  variantId String?
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, productId, variantId])
+  @@map("cart_items")
+}
+
+// Order
+model Order {
+  id            String   @id @default(cuid())
+  userId        String
+  orderNumber   String   @unique
+  totalAmount   Float
+  discountAmount Float  @default(0)
+  finalAmount   Float
+  paymentMethod String   @default("VNPAY") // VNPAY, COD
+  paymentStatus String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  orderStatus   String   @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  shippingAddress String
+  shippingPhone String
+  notes          String?
+  vnpayTransactionId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     OrderItem[]
+  coupon    Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  couponId  String?
+
+  @@map("orders")
+}
+
+// Order Items
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  variantId String?
+  quantity  Int
+  price     Float
+  size      String?
+  color     String?
+  createdAt DateTime @default(now())
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@map("order_items")
+}
+
+// Product Review
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int      @db.TinyInt // 1-5
+  comment   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
+  @@map("reviews")
+}
+
+// Wishlist
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlists")
+}
+
+// Coupon/Discount
+model Coupon {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  discountType  String   @default("PERCENT") // PERCENT, FIXED
+  discountValue Float
+  maxUseCount   Int?
+  currentUseCount Int  @default(0)
+  minOrderAmount Float  @default(0)
+  expiryDate    DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orders Order[]
+
+  @@map("coupons")
+}

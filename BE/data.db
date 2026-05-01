@@ -1,0 +1,433 @@
+CREATE DATABASE clothingShopDB;
+USE clothingShopDB;
+
+-- =========================
+-- USERS
+-- =========================
+CREATE TABLE users (
+    userId VARCHAR(50) PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+
+    fullName VARCHAR(150),
+    email VARCHAR(150),
+    phone VARCHAR(20),
+    address TEXT,
+
+    role INT DEFAULT 1,
+    -- 0 = STAFF
+    -- 1 = CUSTOMER
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+    updatedAt DATETIME
+);
+
+-- =========================
+-- CATEGORIES
+-- =========================
+CREATE TABLE categories (
+    categoryId VARCHAR(50) PRIMARY KEY,
+    categoryName VARCHAR(150) NOT NULL,
+    description TEXT,
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+    updatedAt DATETIME
+);
+
+-- =========================
+-- PRODUCTS
+-- =========================
+CREATE TABLE products (
+    productId VARCHAR(50) PRIMARY KEY,
+    productName VARCHAR(200) NOT NULL,
+
+    categoryId VARCHAR(50),
+
+    description TEXT,
+    thumbnail VARCHAR(255),
+
+    basePrice DECIMAL(12,2),
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+    updatedAt DATETIME,
+
+    FOREIGN KEY (categoryId) REFERENCES categories(categoryId)
+);
+
+-- =========================
+-- PRODUCT VARIANTS
+-- =========================
+CREATE TABLE productVariants (
+    variantId VARCHAR(50) PRIMARY KEY,
+    productId VARCHAR(50) NOT NULL,
+
+    size VARCHAR(20),
+    color VARCHAR(50),
+
+    price DECIMAL(12,2),
+    stock INT DEFAULT 0,
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+    updatedAt DATETIME,
+
+    FOREIGN KEY (productId) REFERENCES products(productId)
+);
+
+-- =========================
+-- PRODUCT IMAGES
+-- =========================
+CREATE TABLE productImages (
+    imageId VARCHAR(50) PRIMARY KEY,
+    productId VARCHAR(50),
+
+    imageUrl VARCHAR(255),
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+    updatedAt DATETIME,
+
+    FOREIGN KEY (productId) REFERENCES products(productId)
+);
+
+-- =========================
+-- ORDERS
+-- =========================
+CREATE TABLE orders (
+    orderId VARCHAR(50) PRIMARY KEY,
+
+    userId VARCHAR(50),
+
+    totalPrice DECIMAL(12,2),
+
+    orderStatus INT DEFAULT 0,
+    -- 0 = PENDING
+    -- 1 = CONFIRMED
+    -- 2 = SHIPPING
+    -- 3 = COMPLETED
+    -- 4 = CANCELLED
+
+    shippingAddress TEXT,
+    phone VARCHAR(20),
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+    updatedAt DATETIME,
+
+    FOREIGN KEY (userId) REFERENCES users(userId)
+);
+
+-- =========================
+-- ORDER DETAILS
+-- =========================
+CREATE TABLE orderDetails (
+    orderDetailId VARCHAR(50) PRIMARY KEY,
+
+    orderId VARCHAR(50),
+    variantId VARCHAR(50),
+
+    price DECIMAL(12,2),
+    quantity INT,
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+    updatedAt DATETIME,
+
+    FOREIGN KEY (orderId) REFERENCES orders(orderId),
+    FOREIGN KEY (variantId) REFERENCES productVariants(variantId)
+);
+
+-- =========================
+-- PAYMENTS
+-- =========================
+CREATE TABLE payments (
+    paymentId VARCHAR(50) PRIMARY KEY,
+
+    orderId VARCHAR(50),
+
+    paymentMethod INT,
+    -- 0 = COD
+    -- 1 = BANK
+    -- 2 = MOMO
+
+    paymentStatus INT DEFAULT 0,
+    -- 0 = PENDING
+    -- 1 = SUCCESS
+    -- 2 = FAILED
+
+    amount DECIMAL(12,2),
+
+    transactionCode VARCHAR(100),
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+    updatedAt DATETIME,
+
+    FOREIGN KEY (orderId) REFERENCES orders(orderId)
+);
+
+-- =========================
+-- PAYMENT HISTORY
+-- =========================
+CREATE TABLE paymentHistory (
+    historyId VARCHAR(50) PRIMARY KEY,
+
+    paymentId VARCHAR(50),
+
+    oldStatus INT,
+    newStatus INT,
+
+    note TEXT,
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME,
+
+    FOREIGN KEY (paymentId) REFERENCES payments(paymentId)
+);
+
+-- =========================
+-- AUDIT LOGS
+-- =========================
+CREATE TABLE auditLogs (
+    logId VARCHAR(50) PRIMARY KEY,
+
+    tableName VARCHAR(100),
+    recordId VARCHAR(50),
+
+    actionType INT,
+    -- 0 = CREATE
+    -- 1 = UPDATE
+    -- 2 = DELETE
+
+    description TEXT,
+
+    activeFlag TINYINT DEFAULT 1,
+    userCreateId VARCHAR(50),
+    luUserId VARCHAR(50),
+
+    createdAt DATETIME
+);
+
+
+
+INSERT INTO users VALUES
+('USR001','admin','123456','Nguyen Van Admin','admin@fashion.com','0901234567','Ha Noi',0,1,'USR001','USR001',NOW(),NOW()),
+('USR002','staff01','123456','Tran Thi Linh','linh@fashion.com','0902345678','Hai Phong',0,1,'USR001','USR002',NOW(),NOW()),
+('USR003','staff02','123456','Le Minh Duc','duc@fashion.com','0903456789','Da Nang',0,1,'USR001','USR003',NOW(),NOW()),
+('USR004','customer01','123456','Pham Thu Trang','trang@gmail.com','0912345678','Ha Noi',1,1,'USR001','USR004',NOW(),NOW()),
+('USR005','customer02','123456','Nguyen Hoang Anh','hoanganh@gmail.com','0913456789','Hai Duong',1,1,'USR001','USR005',NOW(),NOW());
+
+INSERT INTO categories VALUES
+('CAT001','Áo Thun','Áo thun thời trang nam nữ',1,'USR001','USR001',NOW(),NOW()),
+('CAT002','Áo Khoác','Áo khoác mùa đông',1,'USR001','USR001',NOW(),NOW()),
+('CAT003','Quần Jean','Quần jean nam nữ',1,'USR001','USR001',NOW(),NOW()),
+('CAT004','Váy','Váy thời trang nữ',1,'USR001','USR001',NOW(),NOW()),
+('CAT005','Áo Sơ Mi','Áo sơ mi công sở',1,'USR001','USR001',NOW(),NOW());
+
+INSERT INTO products VALUES
+('PROD001','Áo Thun Uniqlo Basic','CAT001','Áo thun cotton mềm mại','ao_thun_uniqlo.jpg',199000,1,'USR001','USR001',NOW(),NOW()),
+('PROD002','Áo Khoác Hoodie Nike','CAT002','Áo hoodie thể thao','hoodie_nike.jpg',799000,1,'USR001','USR001',NOW(),NOW()),
+('PROD003','Quần Jean Levi’s 501','CAT003','Quần jean Levi’s chính hãng','jean_levis.jpg',1299000,1,'USR001','USR001',NOW(),NOW()),
+('PROD004','Váy Zara Summer','CAT004','Váy mùa hè Zara','vay_zara.jpg',599000,1,'USR001','USR001',NOW(),NOW()),
+('PROD005','Áo Sơ Mi Uniqlo Slim Fit','CAT005','Áo sơ mi công sở','somi_uniqlo.jpg',399000,1,'USR001','USR001',NOW(),NOW());
+
+INSERT INTO productVariants VALUES
+('VAR001','PROD001','M','White',199000,50,1,'USR001','USR001',NOW(),NOW()),
+('VAR002','PROD002','L','Black',799000,30,1,'USR001','USR001',NOW(),NOW()),
+('VAR003','PROD003','32','Blue',1299000,20,1,'USR001','USR001',NOW(),NOW()),
+('VAR004','PROD004','S','Red',599000,15,1,'USR001','USR001',NOW(),NOW()),
+('VAR005','PROD005','L','White',399000,40,1,'USR001','USR001',NOW(),NOW());
+
+INSERT INTO productImages VALUES
+('IMG001','PROD001','https://fashion.com/images/ao_thun_uniqlo_1.jpg',1,'USR001','USR001',NOW(),NOW()),
+('IMG002','PROD002','https://fashion.com/images/hoodie_nike_1.jpg',1,'USR001','USR001',NOW(),NOW()),
+('IMG003','PROD003','https://fashion.com/images/jean_levis_1.jpg',1,'USR001','USR001',NOW(),NOW()),
+('IMG004','PROD004','https://fashion.com/images/vay_zara_1.jpg',1,'USR001','USR001',NOW(),NOW()),
+('IMG005','PROD005','https://fashion.com/images/somi_uniqlo_1.jpg',1,'USR001','USR001',NOW(),NOW());
+
+INSERT INTO orders VALUES
+('ORD001','USR004',199000,3,'Ha Noi','0912345678',1,'USR004','USR002',NOW(),NOW()),
+('ORD002','USR005',799000,2,'Hai Duong','0913456789',1,'USR005','USR002',NOW(),NOW()),
+('ORD003','USR004',1299000,1,'Ha Noi','0912345678',1,'USR004','USR003',NOW(),NOW()),
+('ORD004','USR005',599000,0,'Hai Duong','0913456789',1,'USR005','USR002',NOW(),NOW()),
+('ORD005','USR004',399000,3,'Ha Noi','0912345678',1,'USR004','USR003',NOW(),NOW());
+
+
+INSERT INTO orderDetails VALUES
+('OD001','ORD001','VAR001',199000,1,1,'USR004','USR002',NOW(),NOW()),
+('OD002','ORD002','VAR002',799000,1,1,'USR005','USR002',NOW(),NOW()),
+('OD003','ORD003','VAR003',1299000,1,1,'USR004','USR003',NOW(),NOW()),
+('OD004','ORD004','VAR004',599000,1,1,'USR005','USR002',NOW(),NOW()),
+('OD005','ORD005','VAR005',399000,1,1,'USR004','USR003',NOW(),NOW());
+
+INSERT INTO payments VALUES
+('PAY001','ORD001',0,1,199000,'COD20240101',1,'USR004','USR002',NOW(),NOW()),
+('PAY002','ORD002',1,1,799000,'BANK20240102',1,'USR005','USR002',NOW(),NOW()),
+('PAY003','ORD003',2,1,1299000,'MOMO20240103',1,'USR004','USR003',NOW(),NOW()),
+('PAY004','ORD004',0,0,599000,'COD20240104',1,'USR005','USR002',NOW(),NOW()),
+('PAY005','ORD005',1,1,399000,'BANK20240105',1,'USR004','USR003',NOW(),NOW());
+
+INSERT INTO paymentHistory VALUES
+('PH001','PAY001',0,1,'Thanh toán COD thành công',1,'USR002','USR002',NOW()),
+('PH002','PAY002',0,1,'Chuyển khoản ngân hàng thành công',1,'USR002','USR002',NOW()),
+('PH003','PAY003',0,1,'Thanh toán MOMO thành công',1,'USR003','USR003',NOW()),
+('PH004','PAY004',0,0,'Đơn hàng chưa thanh toán',1,'USR002','USR002',NOW()),
+('PH005','PAY005',0,1,'Thanh toán ngân hàng thành công',1,'USR003','USR003',NOW());
+
+INSERT INTO auditLogs VALUES
+('LOG001','products','PROD001',0,'Tạo sản phẩm áo thun Uniqlo',1,'USR001','USR001',NOW()),
+('LOG002','products','PROD002',0,'Tạo sản phẩm hoodie Nike',1,'USR001','USR001',NOW()),
+('LOG003','orders','ORD001',1,'Nhân viên xác nhận đơn hàng',1,'USR002','USR002',NOW()),
+('LOG004','orders','ORD002',1,'Cập nhật trạng thái giao hàng',1,'USR002','USR002',NOW()),
+('LOG005','products','PROD003',2,'Ngừng bán sản phẩm Levi’s',1,'USR003','USR003',NOW());
+
+
+DELIMITER $$
+
+CREATE DEFINER=`root`@`%` PROCEDURE `SearchProducts`(
+    IN p_search_content VARCHAR(500),
+    IN p_categoryId VARCHAR(50),
+    IN p_pageIndex INT,
+    IN p_pageSize INT,
+    OUT p_error_code INT,
+    OUT p_error_message VARCHAR(500)
+)
+BEGIN
+    DECLARE p_total_row INT;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1
+            p_error_code = RETURNED_SQLSTATE,
+            p_error_message = MESSAGE_TEXT;
+    END;
+
+    SET p_error_code = 0;
+    SET p_error_message = '';
+
+    IF p_pageSize <> 0 THEN
+        DROP TEMPORARY TABLE IF EXISTS SearchResults;
+        
+        CREATE TEMPORARY TABLE SearchResults AS
+        SELECT 
+            (@row_number := @row_number + 1) AS RowNumber,
+            t.*
+        FROM (
+            SELECT 
+                p.productId,
+                p.productName,
+                p.categoryId,
+                c.categoryName,
+                p.description,
+                p.thumbnail,
+                p.basePrice,
+                p.activeFlag,
+                p.userCreateId,
+                p.luUserId,
+                p.createdAt,
+                p.updatedAt,
+                COUNT(pv.variantId) as variantCount,
+                COALESCE(SUM(pv.stock), 0) as totalStock
+            FROM products p
+            LEFT JOIN categories c ON p.categoryId = c.categoryId
+            LEFT JOIN productVariants pv ON p.productId = pv.productId AND pv.activeFlag = 1
+            WHERE p.activeFlag = 1
+            AND (p_categoryId IS NULL OR p_categoryId = '' OR p.categoryId = p_categoryId)
+            AND (p_search_content IS NULL OR p_search_content = ''
+                OR LOWER(CONCAT(
+                    COALESCE(p.productName, ''),
+                    COALESCE(p.description, ''),
+                    COALESCE(c.categoryName, '')
+                )) LIKE CONCAT('%', LOWER(TRIM(p_search_content)), '%'))
+            GROUP BY p.productId, p.productName, p.categoryId, c.categoryName, 
+                     p.description, p.thumbnail, p.basePrice, p.activeFlag,
+                     p.userCreateId, p.luUserId, p.createdAt, p.updatedAt
+            ORDER BY p.createdAt DESC
+        ) t
+        CROSS JOIN (SELECT @row_number := 0) r;
+
+        SELECT COUNT(*) INTO p_total_row FROM SearchResults;
+
+        SELECT *, p_total_row AS RecordCount
+        FROM SearchResults
+        WHERE RowNumber BETWEEN ((p_pageIndex - 1) * p_pageSize) + 1 AND (p_pageIndex * p_pageSize);
+
+        DROP TEMPORARY TABLE SearchResults;
+    ELSE
+        DROP TEMPORARY TABLE IF EXISTS SearchResults;
+        
+        CREATE TEMPORARY TABLE SearchResults AS
+        SELECT 
+            (@row_number := @row_number + 1) AS RowNumber,
+            t.*
+        FROM (
+            SELECT 
+                p.productId,
+                p.productName,
+                p.categoryId,
+                c.categoryName,
+                p.description,
+                p.thumbnail,
+                p.basePrice,
+                p.activeFlag,
+                p.userCreateId,
+                p.luUserId,
+                p.createdAt,
+                p.updatedAt,
+                COUNT(pv.variantId) as variantCount,
+                COALESCE(SUM(pv.stock), 0) as totalStock
+            FROM products p
+            LEFT JOIN categories c ON p.categoryId = c.categoryId
+            LEFT JOIN productVariants pv ON p.productId = pv.productId AND pv.activeFlag = 1
+            WHERE p.activeFlag = 1
+            AND (p_categoryId IS NULL OR p_categoryId = '' OR p.categoryId = p_categoryId)
+            AND (p_search_content IS NULL OR p_search_content = ''
+                OR LOWER(CONCAT(
+                    COALESCE(p.productName, ''),
+                    COALESCE(p.description, ''),
+                    COALESCE(c.categoryName, '')
+                )) LIKE CONCAT('%', LOWER(TRIM(p_search_content)), '%'))
+            GROUP BY p.productId, p.productName, p.categoryId, c.categoryName, 
+                     p.description, p.thumbnail, p.basePrice, p.activeFlag,
+                     p.userCreateId, p.luUserId, p.createdAt, p.updatedAt
+            ORDER BY p.createdAt DESC
+        ) t
+        CROSS JOIN (SELECT @row_number := 0) r;
+
+        SELECT COUNT(*) INTO p_total_row FROM SearchResults;
+        SELECT *, p_total_row AS RecordCount FROM SearchResults;
+
+        DROP TEMPORARY TABLE SearchResults;
+    END IF;
+END$$
+
+DELIMITER ;

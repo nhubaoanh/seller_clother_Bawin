@@ -1,0 +1,9 @@
+// jsconfig.json (ở cùng cấp với package.json)
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
+}
