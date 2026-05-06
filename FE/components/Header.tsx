@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
-import { ShoppingCart, User, LogOut, Menu, X, Sparkles, Search } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Menu, X, Sparkles, Search, Package } from 'lucide-react';
 import { cartService } from '@/lib/services/cartService';
 import { authService } from '@/lib/services/authService';
 
@@ -135,6 +135,10 @@ export default function Header() {
                                     <User size={16} />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Account</span>
                                 </Link>
+                                <Link href="/orders" className="flex items-center gap-4 px-4 py-3 text-gray-400 hover:bg-gray-50 hover:text-black transition-all rounded-2xl">
+                                    <Package size={16} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Orders</span>
+                                </Link>
                                 <button
                                     onClick={handleLogout}
                                     className="w-full flex items-center gap-4 px-4 py-3 text-gray-400 hover:bg-black hover:text-white transition-all rounded-2xl"
@@ -184,7 +188,10 @@ export default function Header() {
             <div className="mt-auto space-y-6">
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-300">Identity Control</p>
                 {user ? (
-                    <button onClick={handleLogout} className="flex items-center gap-4 text-xl font-black uppercase italic"><LogOut /> Sign Out</button>
+                    <div className="flex flex-col gap-6">
+                        <Link href="/orders" onClick={() => setMobileOpen(false)} className="flex items-center gap-4 text-xl font-black uppercase italic"><Package /> My Orders</Link>
+                        <button onClick={handleLogout} className="flex items-center gap-4 text-xl font-black uppercase italic"><LogOut /> Sign Out</button>
+                    </div>
                 ) : (
                     <Link href="/login" className="flex items-center gap-4 text-xl font-black uppercase italic"><User /> Login</Link>
                 )}
